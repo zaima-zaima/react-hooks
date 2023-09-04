@@ -1,0 +1,13 @@
+.main-container {
+    width:100vw;
+    height: 100vh;
+    display: flex;
+    background-color: orange;
+    .side-bar {
+        width:10rem;
+        flex-shrink: 0;
+    }
+    .route-area {
+        flex-grow:1;
+    }
+}
