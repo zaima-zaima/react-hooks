@@ -80,10 +80,13 @@ export function useFetch<T>(callback: (...params) => Promise<ResponseDataType<T>
 
     useEffect(() => {
         (async () => {
+            options.beforeLoad && options.beforeLoad();
             const result = await callback(...params);
+            options.afterLoad && options.afterLoad();
+
             if (result.code === 0 && result.data) {
                 setData(result.data);
-            } else if (options && options.error) {
+            } else if (result.code !== 0 && (!result.data) && options && options.error) {
                 options.error(result.code, result.msg);
             }
         })()
