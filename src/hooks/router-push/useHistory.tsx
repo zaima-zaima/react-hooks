@@ -38,7 +38,6 @@ function pathResolve(path: string, query: string, params: object) {
     const regArray = path.match(reg) || [];
     regArray.forEach(p => {
         const sign = p.split((/\b/));
-        console.log(sign[1]);
         const tmp = `:${sign[1]}`;
         str = str.replace(new RegExp(tmp), params[sign[1]]);
     })

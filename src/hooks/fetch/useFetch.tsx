@@ -6,10 +6,10 @@ interface Hooks {
     [key: string]: () => void
 }
 
-interface Options {
+interface Options<T> {
     error?: (code: number, msg: string) => void;
     beforeLoad?: () => void;
-    afterLoad?: () => void;
+    afterLoad?: (data: T) => void;
     hooks?: Hooks;
 }
 
@@ -36,7 +36,7 @@ export interface Reback<T> {
  */
 
 
-export function useFetchWithCount<T>(callback: (...params) => Promise<ResponseDataTypeWidthCount<T[]>>, options?: Options, ...params): RebackWidthCount<T[]> {
+export function useFetchWithCount<T>(callback: (...params) => Promise<ResponseDataTypeWidthCount<T[]>>, options?: Options<T[]>, ...params): RebackWidthCount<T[]> {
 
     const [data, setData] = useState<T[]>([]);
     const [count, setCount] = useState(0);
@@ -44,18 +44,19 @@ export function useFetchWithCount<T>(callback: (...params) => Promise<ResponseDa
     useEffect(() => {
         (async () => {
 
-            options.beforeLoad && options.beforeLoad();
+            options && options.beforeLoad && options.beforeLoad();
 
             const result = await callback(...params);
-
-            options.afterLoad && options.afterLoad();
 
             if (result.code === 0 && result.data) {
                 setData(result.data.datas);
                 setCount(result.data.count)
             } else if (result.code !== 0 && (!result.data) && options && options.error) {
                 options.error(result.code, result.msg);
+                return;
             }
+
+            options && options.afterLoad && options.afterLoad(result.data.datas);
         })()
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [...params])
@@ -65,7 +66,7 @@ export function useFetchWithCount<T>(callback: (...params) => Promise<ResponseDa
         count,
         setData,
         setCount,
-        callback: options.hooks
+        callback: options ? options.hooks : {}
     }
 }
 
@@ -75,29 +76,24 @@ export function useFetchWithCount<T>(callback: (...params) => Promise<ResponseDa
  * @returns 
  */
 
-export function useFetch<T>(callback: (...params) => Promise<ResponseDataType<T>>, initial, options?: Options, ...params): Reback<T> {
+export function useFetch<T>(callback: (...params) => Promise<ResponseDataType<T>>, initial, options?: Options<T>, ...params): Reback<T> {
     const [data, setData] = useState<T>(initial)
 
     useEffect(() => {
         (async () => {
-            options.beforeLoad && options.beforeLoad();
+            options && options.beforeLoad && options.beforeLoad();
             const result = await callback(...params);
-            options.afterLoad && options.afterLoad();
-
             if (result.code === 0 && result.data) {
                 setData(result.data);
             } else if (result.code !== 0 && (!result.data) && options && options.error) {
                 options.error(result.code, result.msg);
+                return;
             }
+
+            options && options.afterLoad && options.afterLoad(result.data);
         })()
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [...params])
-    return { data, setData, callback: options.hooks };
+    return { data, setData, callback: options ? options.hooks : {} };
 }
-
-
-
-
-
-
 
